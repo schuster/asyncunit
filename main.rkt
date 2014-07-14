@@ -14,20 +14,20 @@
 (define-syntax (check-unicast stx)
   (syntax-parse stx
     [(_ channel
-        expected-message ...
+        expected-message
         (~or (~optional (~seq #:description description)
                         #:defaults ([description #'"expected message"]))
              (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time]))) ...)
      (with-syntax ([loc (syntax->location stx)])
        #'(check-unicast-internal channel
-                                 (list expected-message ...)
+                                 expected-message
                                  description
                                  wait-time
                                  'loc
                                  (quote #,(syntax->datum stx))))]))
 
 (define (check-unicast-internal expected-channel
-                                expected-message-tuple
+                                expected-message
                                 description
                                 wait-time
                                 loc
@@ -35,11 +35,11 @@
   (with-check-info (['name 'check-unicast]
                     ['location loc]
                     ['expression expression])
-    (define actual-message-tuple
+    (define actual-message
       (or (sync/timeout wait-time expected-channel)
           (fail-check-with-message (format "Timeout while waiting on ~a" description))))
-    (unless (equal? actual-message-tuple expected-message-tuple)
-      (fail-check-with-message (format "Got ~s instead of ~a" actual-message-tuple description)))))
+    (unless (equal? actual-message expected-message)
+      (fail-check-with-message (format "Got ~s instead of ~a" actual-message description)))))
 
 (define-for-syntax (syntax->location stx)
   (list (syntax-source stx)

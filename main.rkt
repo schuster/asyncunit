@@ -57,7 +57,7 @@
   (syntax-parse stx
     [(_ channel
         pattern
-        (~or (~optional (~seq #:result result) #:defaults ([result #'#(void)]))
+        (~or (~optional (~seq #:result result) #:defaults ([result #'(void)]))
              (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time]))) ...)
      (with-syntax ([loc (syntax->location stx)])
        #'(with-check-info (['name 'check-unicast-match]

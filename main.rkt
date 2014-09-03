@@ -77,13 +77,14 @@
 
 (define-syntax (check-no-message stx)
   (syntax-parse stx
-    [(_ channels ...
-        (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time])))
+    [(_ channels ... (~seq #:timeout wait-time))
      (with-syntax ([loc (syntax->location stx)])
        #'(check-no-message-internal (list channels ...)
                                     wait-time
                                     'loc
-                                    (quote #,(syntax->datum stx))))]))
+                                    (quote #,(syntax->datum stx))))]
+    [(_ channels ...)
+     #'(check-no-message channels ... #:timeout default-wait-time)]))
 
 (define (check-no-message-internal channels wait-time loc expression)
   (with-check-info (['name 'check-no-unicast]

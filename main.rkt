@@ -3,7 +3,10 @@
 ;; Provides various RackUnit helpers for dealing with async channels
 
 (provide check-unicast
-         check-unicast-match)
+         check-unicast-match
+
+         ;; Checks that no message is sent on any of the given channels during the wait-time
+         check-no-message)
 
 ;; ---------------------------------------------------------------------------------------------------
 
@@ -71,3 +74,21 @@
                                                  actual-message
                                                  'pattern
                                                  ))])))]))
+
+(define-syntax (check-no-message stx)
+  (syntax-parse stx
+    [(_ channels ...
+        (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time])))
+     (with-syntax ([loc (syntax->location stx)])
+       #'(check-no-message-internal (list channels ...)
+                                    wait-time
+                                    'loc
+                                    (quote #,(syntax->datum stx))))]))
+
+(define (check-no-message-internal channels wait-time loc expression)
+  (with-check-info (['name 'check-no-unicast]
+                    ['location loc]
+                    ['expression expression])
+    (define actual-message (apply sync/timeout wait-time channels))
+    (when actual-message
+      (fail-check-with-message (format "One of the channels received message ~a" actual-message)))))

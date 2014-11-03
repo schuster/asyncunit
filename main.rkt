@@ -60,20 +60,15 @@
   (syntax-parse stx
     [(_ channel
         pattern
-        (~or (~optional (~seq #:result result) #:defaults ([result #'(void)]))
-             (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time]))) ...)
+        (~optional pred #:defaults ([pred #'#t]))
+        (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time])))
      (with-syntax ([loc (syntax->location stx)])
        #'(with-check-info (['name 'check-unicast-match]
                            ['location 'loc]
                            ['expression (quote #,(syntax->datum stx))])
            (define actual-message
              (or (sync/timeout wait-time channel) (fail-check-with-message "Timeout")))
-           (match actual-message
-             [pattern result]
-             [_ (fail-check-with-message (format "~a did not match pattern ~a"
-                                                 actual-message
-                                                 'pattern
-                                                 ))])))]))
+           (check-match actual-message pattern pred)))]))
 
 (define-syntax (check-no-message stx)
   (syntax-parse stx

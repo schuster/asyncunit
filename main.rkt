@@ -23,12 +23,12 @@
                         #:defaults ([description #'"expected message"]))
              (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time]))) ...)
      (with-syntax ([loc (syntax->location stx)])
-       #'(check-unicast-internal channel
-                                 expected-message
-                                 description
-                                 wait-time
-                                 'loc
-                                 (quote #,(syntax->datum stx))))]))
+       (syntax/loc stx (check-unicast-internal channel
+                                               expected-message
+                                               description
+                                               wait-time
+                                               'loc
+                                               (quote #,(syntax->datum stx)))))]))
 
 (define (check-unicast-internal expected-channel
                                 expected-message
@@ -63,23 +63,24 @@
         (~optional pred #:defaults ([pred #'#t]))
         (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time])))
      (with-syntax ([loc (syntax->location stx)])
-       #'(with-check-info (['name 'check-unicast-match]
+       (quasisyntax/loc stx
+         (with-check-info (['name 'check-unicast-match]
                            ['location 'loc]
                            ['expression (quote #,(syntax->datum stx))])
            (define actual-message
              (or (sync/timeout wait-time channel) (fail-check-with-message "Timeout")))
-           (check-match actual-message pattern pred)))]))
+           (check-match actual-message pattern pred))))]))
 
 (define-syntax (check-no-message stx)
   (syntax-parse stx
     [(_ channels ... (~seq #:timeout wait-time))
      (with-syntax ([loc (syntax->location stx)])
-       #'(check-no-message-internal (list channels ...)
-                                    wait-time
-                                    'loc
-                                    (quote #,(syntax->datum stx))))]
+       (syntax/loc stx (check-no-message-internal (list channels ...)
+                                                  wait-time
+                                                  'loc
+                                                  (quote #,(syntax->datum stx)))))]
     [(_ channels ...)
-     #'(check-no-message channels ... #:timeout default-wait-time)]))
+     (syntax/loc stx (check-no-message channels ... #:timeout default-wait-time))]))
 
 (define (check-no-message-internal channels wait-time loc expression)
   (with-check-info (['name 'check-no-unicast]

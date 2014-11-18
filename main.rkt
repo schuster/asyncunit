@@ -23,7 +23,7 @@
                         #:defaults ([description #'"expected message"]))
              (~optional (~seq #:timeout wait-time) #:defaults ([wait-time #'default-wait-time]))) ...)
      (with-syntax ([loc (syntax->location stx)])
-       (syntax/loc stx (check-unicast-internal channel
+       (quasisyntax/loc stx (check-unicast-internal channel
                                                expected-message
                                                description
                                                wait-time
@@ -75,15 +75,15 @@
   (syntax-parse stx
     [(_ channels ... (~seq #:timeout wait-time))
      (with-syntax ([loc (syntax->location stx)])
-       (syntax/loc stx (check-no-message-internal (list channels ...)
+       (quasisyntax/loc stx (check-no-message-internal (list channels ...)
                                                   wait-time
                                                   'loc
                                                   (quote #,(syntax->datum stx)))))]
     [(_ channels ...)
-     (syntax/loc stx (check-no-message channels ... #:timeout default-wait-time))]))
+     (quasisyntax/loc stx (check-no-message channels ... #:timeout default-wait-time))]))
 
 (define (check-no-message-internal channels wait-time loc expression)
-  (with-check-info (['name 'check-no-unicast]
+  (with-check-info (['name 'check-no-message]
                     ['location loc]
                     ['expression expression])
     (define actual-message (apply sync/timeout wait-time channels))

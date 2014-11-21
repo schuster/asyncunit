@@ -42,8 +42,11 @@
     (define actual-message
       (or (sync/timeout wait-time expected-channel)
           (fail-check-with-message (format "Timeout while waiting on ~a" description))))
-    (unless (equal? actual-message expected-message)
-      (fail-check-with-message (format "Got ~s instead of ~a" actual-message description)))))
+    (with-check-info*
+        (list (make-check-actual actual-message))
+      (lambda ()
+        (unless (equal? actual-message expected-message)
+          (fail-check-with-message (format "Got ~s instead of ~a" actual-message description)))))))
 
 (define-for-syntax (syntax->location stx)
   (list (syntax-source stx)
@@ -69,9 +72,12 @@
                            ['expression (quote #,(syntax->datum stx))])
            (define actual-message
              (or (sync/timeout wait-time channel) (fail-check-with-message "Timeout")))
-           (match actual-message
-             [pattern result-exp]
-             [_ (fail-check-with-message "The message did not match the expected pattern")]))))]))
+           (with-check-info*
+               (list (make-check-actual actual-message))
+             (lambda ()
+               (match actual-message
+                 [pattern result-exp]
+                 [_ (fail-check "The message did not match the expected pattern")]))))))]))
 
 (define-syntax (check-no-message stx)
   (syntax-parse stx

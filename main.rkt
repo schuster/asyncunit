@@ -11,6 +11,7 @@
 ;; ---------------------------------------------------------------------------------------------------
 
 (require rackunit
+         rackunit/log
          (for-syntax syntax/parse))
 
 (define default-wait-time 2)
@@ -43,10 +44,11 @@
       (or (sync/timeout wait-time expected-channel)
           (fail-check-with-message (format "Timeout while waiting on ~a" description))))
     (with-check-info*
-        (list (make-check-actual actual-message))
+      (list (make-check-actual actual-message))
       (lambda ()
         (unless (equal? actual-message expected-message)
-          (fail-check-with-message (format "Got ~s instead of ~a" actual-message description)))))))
+          (fail-check-with-message (format "Got ~s instead of ~a" actual-message description)))
+        (test-log! #t)))))
 
 (define-for-syntax (syntax->location stx)
   (list (syntax-source stx)
@@ -76,7 +78,7 @@
                (list (make-check-actual actual-message))
              (lambda ()
                (match actual-message
-                 [pattern result-exp]
+                 [pattern (test-log! #t) result-exp]
                  [_ (fail-check "The message did not match the expected pattern")]))))))]))
 
 (define-syntax (check-no-message stx)
@@ -96,4 +98,5 @@
                     ['expression expression])
     (define actual-message (apply sync/timeout wait-time channels))
     (when actual-message
-      (fail-check-with-message (format "One of the channels received message ~a" actual-message)))))
+      (fail-check-with-message (format "One of the channels received message ~a" actual-message)))
+    (test-log! #t)))

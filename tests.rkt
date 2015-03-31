@@ -17,3 +17,5 @@
 
 (test-case "Timeout for check-unicast-match"
   (check-exn (lambda (x) #t) (lambda () (check-unicast-match (make-async-channel) (list 1 2 x)))))
+
+;; TODO: write tests for the test success/failure count (with test-log) for each of my checks

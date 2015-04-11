@@ -12,7 +12,8 @@
 
 (require rackunit
          rackunit/log
-         (for-syntax syntax/parse))
+         (for-syntax syntax/parse)
+         racket/async-channel)
 
 (define default-wait-time 2)
 
@@ -31,12 +32,13 @@
                                                'loc
                                                (quote #,(syntax->datum stx)))))]))
 
-(define (check-unicast-internal expected-channel
-                                expected-message
-                                description
-                                wait-time
-                                loc
-                                expression)
+(define/contract (check-unicast-internal expected-channel
+                                         expected-message
+                                         description
+                                         wait-time
+                                         loc
+                                         expression)
+  (-> async-channel? any/c string? any/c any/c any/c any/c)
   (with-check-info (['name 'check-unicast]
                     ['location loc]
                     ['expression expression])
